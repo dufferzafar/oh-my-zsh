@@ -6,8 +6,30 @@ if [ $UID -eq 0 ]; then NCOLOR="red"; else NCOLOR="green"; fi
 local return_code="%(?..%{$fg[red]%}%? ↵%{$reset_color%})"
 
 # primary prompt
+_PWD()
+{
+    fullpath=$(print -P '%~')
+    smallpath=$(print -P '%-2~/.../%2~')
+
+    if (( ${#smallpath} < ${#fullpath} )); then
+        echo "$smallpath"
+    else
+        echo "$fullpath"
+    fi
+}
+
+
+_PWD2 ()
+{
+    local PRE= NAME="$(print -P '%~')" LENGTH="40";
+    [[ "$NAME" != "${NAME#$HOME/}" || -z "${NAME#$HOME}" ]] &&
+        PRE+='~' NAME="${NAME#$HOME}" LENGTH=$[LENGTH-1];
+    ((${#NAME}>$LENGTH)) && NAME="/...${NAME:$[${#NAME}-LENGTH+4]}";
+    echo "$PRE$NAME"
+}
+
 PROMPT='
-$FG[032]%~\
+$FG[032]$(_PWD)\
 $(git_prompt_info) \
 $FG[105]%(!.#.>)%{$reset_color%} '
 PROMPT2='%{$fg[red]%}\ %{$reset_color%}'
