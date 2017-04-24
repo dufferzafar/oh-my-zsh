@@ -18,7 +18,6 @@ fi
 bindkey -e                                            # Use emacs key bindings
 
 bindkey '\ew' kill-region                             # [Esc-w] - Kill from the cursor to the mark
-bindkey -s '\el' 'ls\n'                               # [Esc-l] - run command: ls
 bindkey '^r' history-incremental-search-backward      # [Ctrl-r] - Search backward incrementally for a specified string. The string may begin with ^ to anchor the search to the beginning of the line.
 if [[ "${terminfo[kpp]}" != "" ]]; then
   bindkey "${terminfo[kpp]}" up-line-or-history       # [PageUp] - Up a line of history
@@ -70,15 +69,38 @@ autoload -U edit-command-line
 zle -N edit-command-line
 bindkey '\C-x\C-e' edit-command-line
 
-# file rename magick
+# Copy last word again!
 bindkey "^[m" copy-prev-shell-word
 
-# consider emacs keybindings:
+# Allows you to use Alt+. with other lines
+autoload -Uz copy-earlier-word
+zle -N copy-earlier-word
+bindkey "^[n" copy-earlier-word
 
-#bindkey -e  ## emacs key bindings
-#
+# Rebind "Alt+0 Alt+."
+# Alt+0 Alt+. gives the first part of the previous command!
+# Thanks to awesome folks over at #zsh
+bindkey -s '\e,' '\e0\e.'
+
+# Move to where the arguments belong.
+after-first-word() {
+  zle beginning-of-line
+  zle forward-word
+}
+zle -N after-first-word
+bindkey '^[[1;5A' after-first-word # Ctrl + Up
+
+# I have defined $WORDCHARS to exclude / since I usually
+# don’t want C-w to remove whole paths. But sometimes I do.
+function _backward_kill_default_word() {
+  WORDCHARS='*?_-.[]~=/&;!#$%^(){}<>' zle backward-kill-word
+}
+zle -N backward-kill-default-word _backward_kill_default_word
+bindkey '\e=' backward-kill-default-word   # = is next to backspace
+
 #bindkey '^[[A' up-line-or-search
 #bindkey '^[[B' down-line-or-search
+
 #bindkey '^[^[[C' emacs-forward-word
 #bindkey '^[^[[D' emacs-backward-word
 #
@@ -86,7 +108,6 @@ bindkey "^[m" copy-prev-shell-word
 #bindkey '^[e' expand-cmd-path
 #bindkey '^[^I' reverse-menu-complete
 #bindkey '^X^N' accept-and-infer-next-history
-#bindkey '^W' kill-region
 #bindkey '^I' complete-word
 ## Fix weird sequence that rxvt produces
 #bindkey -s '^[[Z' '\t'
